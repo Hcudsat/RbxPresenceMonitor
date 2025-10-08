@@ -6,11 +6,15 @@ import time
 from datetime import datetime
 
 # === RobloxユーザーIDとWebhook設定 ===
-USER_ID = "5726041083"
+USER_ID = os.getenv("ROBLOX_USER_ID")
 WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
 if not WEBHOOK_URL:
     print("エラー: DISCORD_WEBHOOK_URL環境変数が設定されていません")
+    sys.exit(1)
+
+if not USER_ID:
+    print("エラー: ROBLOX_USER_ID環境変数が設定されていません")
     sys.exit(1)
 
 # === 二重起動防止（Replitでも有効） ===
