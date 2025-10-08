@@ -4,6 +4,8 @@ import psutil
 import requests
 import time
 from datetime import datetime
+from flask import Flask
+import threading
 
 # === RobloxユーザーIDとWebhook設定 ===
 USER_ID = os.getenv("ROBLOX_USER_ID")
@@ -83,8 +85,30 @@ def check_presence():
 
         last_state = state
 
-# === メインループ ===
-print("Robloxのステータス監視を開始します...")
-while True:
-    check_presence()
-    time.sleep(5)
+# === モニタリングループ（別スレッドで実行） ===
+def monitoring_loop():
+    print("Robloxのステータス監視を開始します...")
+    while True:
+        check_presence()
+        time.sleep(5)
+
+# === Flaskアプリ設定 ===
+app = Flask(__name__)
+
+@app.route('/')
+def health_check():
+    return {"status": "ok", "message": "Roblox Monitor is running"}, 200
+
+@app.route('/ping')
+def ping():
+    return "pong", 200
+
+# === メイン実行 ===
+if __name__ == "__main__":
+    # モニタリングを別スレッドで開始
+    monitor_thread = threading.Thread(target=monitoring_loop, daemon=True)
+    monitor_thread.start()
+    
+    # Flaskサーバーを起動
+    print("Webサーバーを起動します（ポート5000）...")
+    app.run(host='0.0.0.0', port=5000)
