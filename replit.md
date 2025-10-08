@@ -50,6 +50,12 @@ The application follows a **polling-based monitoring pattern** with state tracki
 - Standard library: `os`, `sys`, `time`, `datetime`
 
 ## Configuration
-- User ID and webhook URL are hardcoded constants
+- User ID is hardcoded constant (5726041083)
+- Discord webhook URL stored securely in `DISCORD_WEBHOOK_URL` environment variable
 - No database or persistent storage used
 - State maintained in-memory only (resets on restart)
+
+## Security
+- Discord webhook URL protected via Replit Secrets (environment variable)
+- Early exit with error message if webhook URL environment variable is not set
+- No sensitive credentials stored in code
