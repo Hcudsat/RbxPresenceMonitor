@@ -16,3 +16,26 @@ deploymentTarget = "cloudrun"
 
 [agent]
 expertMode = true
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Roblox Monitor"
+
+[[workflows.workflow]]
+name = "Roblox Monitor"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python roblox_presence_notifier.py"
+
+[workflows.workflow.metadata]
+outputType = "console"
