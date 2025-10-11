@@ -19,22 +19,25 @@ if not USER_ID:
     print("エラー: ROBLOX_USER_ID環境変数が設定されていません")
     sys.exit(1)
 
-# === 二重起動防止（Replitでも有効） ===
+
+# === 二重起動防止 ===
 def check_already_running(script_name):
     current_pid = os.getpid()
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
-            if (
-                proc.info['pid'] != current_pid and
-                'python' in (proc.info['name'] or '').lower() and
-                script_name in ' '.join(proc.info.get('cmdline') or [])
-            ):
+            if (proc.info['pid'] != current_pid
+                    and 'python' in (proc.info['name'] or '').lower()
+                    and script_name in ' '.join(
+                        proc.info.get('cmdline') or [])):
                 print(f"Already running (PID: {proc.info['pid']}). Exiting.")
                 sys.exit()
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        except (psutil.NoSuchProcess, psutil.AccessDenied,
+                psutil.ZombieProcess):
             continue
 
+
 check_already_running('roblox_presence_notifier.py')
+
 
 # === Discord送信関数 ===
 def send_discord_message(content):
@@ -46,9 +49,11 @@ def send_discord_message(content):
     except Exception as e:
         print(f"Discord送信エラー: {e}")
 
+
 # === 状態監視関数 ===
 last_state = None
 online_since = None
+
 
 def check_presence():
     global last_state, online_since
@@ -70,13 +75,14 @@ def check_presence():
         if state == 0:
             if online_since:
                 duration = int((time.time() - online_since) / 60)
-                send_discord_message(f"User is now Offline 🥀（Playtime: {duration}分）")
+                send_discord_message(
+                    f"User is now Offline 🥀（Playtime: {duration}分）")
             else:
                 send_discord_message("User is now Offline 🥀")
             online_since = None
 
         elif state == 1:
-            send_discord_message("User is now Online 🔥（ホーム画面）")
+            send_discord_message("User is now Online 🔥")
             online_since = time.time()
 
         elif state == 2:
@@ -85,30 +91,35 @@ def check_presence():
 
         last_state = state
 
-# === モニタリングループ（別スレッドで実行） ===
+
+# === モニタリングループ ===
 def monitoring_loop():
-    print("Robloxのステータス監視を開始します...")
+    print("ステータス監視を開始します...")
     while True:
         check_presence()
         time.sleep(5)
 
+
 # === Flaskアプリ設定 ===
 app = Flask(__name__)
+
 
 @app.route('/')
 def health_check():
     return {"status": "ok", "message": "Roblox Monitor is running"}, 200
 
+
 @app.route('/ping')
 def ping():
     return "pong", 200
+
 
 # === メイン実行 ===
 if __name__ == "__main__":
     # モニタリングを別スレッドで開始
     monitor_thread = threading.Thread(target=monitoring_loop, daemon=True)
     monitor_thread.start()
-    
+
     # Flaskサーバーを起動
     print("Webサーバーを起動します（ポート5000）...")
     app.run(host='0.0.0.0', port=5000)
