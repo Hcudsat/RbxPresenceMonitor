@@ -1,9 +1,9 @@
 """
-Roblox Presence Notifier
+RbxPresenceMonitor
 Author: Hcudsat
 Description:
-  Monitor Roblox user activity via Roblox Presence API
-  and send Discord notifications automatically.
+  Cloud-based Roblox presence tracker that monitors a user's online/offline/game activity
+  and sends structured Discord embed notifications in real time.
 """
 
 import os
@@ -46,20 +46,36 @@ def check_already_running(script_name: str):
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             continue
 
-check_already_running("roblox_presence_notifier.py")
+check_already_running("app.py")
 
-# === Discord Notifier ===
-def send_discord(content: str):
+# === Discord Embed Notifier ===
+def send_discord_embed(title: str, description: str, color: int, game_name: str = None):
+    embed = {
+        "author": {
+            "name": "RbxPresenceMonitor",
+            "url": "https://github.com/Hcudsat/RbxPresenceMonitor",
+            "icon_url": "https://static.wikia.nocookie.net/roblox/images/8/84/Roblox_logo.png"
+        },
+        "title": title,
+        "description": description,
+        "color": color,
+        "footer": {
+            "text": f"{'Game: ' + game_name if game_name else 'No game active'} • {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        }
+    }
+
+    payload = {"embeds": [embed]}
     try:
-        r = requests.post(WEBHOOK_URL, json={"content": content}, timeout=10)
+        r = requests.post(WEBHOOK_URL, json=payload, timeout=10)
         r.raise_for_status()
-        logging.info(f"Sent to Discord → {content}")
-    except requests.RequestException as e:
+        logging.info(f"Sent Discord embed: {title}")
+    except Exception as e:
         logging.error(f"Discord send error: {e}")
 
 # === Presence Monitoring ===
 last_state = None
 online_since = None
+last_game_id = None
 
 def get_user_presence(user_id: int):
     url = "https://presence.roblox.com/v1/presence/users"
@@ -67,33 +83,75 @@ def get_user_presence(user_id: int):
     headers = {"Content-Type": "application/json"}
     response = requests.post(url, json=payload, headers=headers, timeout=10)
     response.raise_for_status()
-    return response.json()["userPresences"][0]["userPresenceType"]
+    data = response.json()["userPresences"][0]
+    state = data["userPresenceType"]  # 0=Offline, 1=Online, 2=In-Game
+    game_id = data.get("gameId", None)
+    place_id = data.get("placeId", None)
+    return state, game_id, place_id
+
+def get_game_name(place_id: str):
+    try:
+        if not place_id:
+            return None
+        response = requests.get(f"https://games.roblox.com/v1/games/multiget-place-details?placeIds={place_id}", timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        if data and len(data) > 0:
+            return data[0]["name"]
+    except Exception:
+        return None
+    return None
 
 def monitor_presence():
-    global last_state, online_since
+    global last_state, online_since, last_game_id
 
     logging.info("Presence monitoring started.")
     while True:
         try:
-            state = get_user_presence(int(USER_ID))
-            if state != last_state:
+            state, game_id, place_id = get_user_presence(int(USER_ID))
+            game_name = get_game_name(place_id) if state == 2 else None
+
+            if state != last_state or game_id != last_game_id:
                 now = datetime.now().strftime("%H:%M:%S")
                 if state == 0:
                     if online_since:
                         duration = int((time.time() - online_since) / 60)
-                        send_discord(f"Offline ({duration} min)")
+                        send_discord_embed(
+                            title="User Offline",
+                            description=f"The user went offline. Total session time: {duration} minutes.",
+                            color=0xE74C3C,
+                        )
                     else:
-                        send_discord("Offline")
+                        send_discord_embed(
+                            title="User Offline",
+                            description="The user is now offline.",
+                            color=0xE74C3C,
+                        )
                     online_since = None
+
                 elif state == 1:
-                    send_discord(f"Online ({now})")
+                    send_discord_embed(
+                        title="User Online",
+                        description=f"The user is now online ({now}).",
+                        color=0x2ECC71,
+                    )
                     online_since = time.time()
+
                 elif state == 2:
-                    send_discord(f"Playing ({now})")
+                    send_discord_embed(
+                        title="User In Game",
+                        description=f"The user started playing: {game_name or 'Unknown Game'}",
+                        color=0x3498DB,
+                        game_name=game_name
+                    )
                     online_since = time.time()
+
                 last_state = state
+                last_game_id = game_id
+
         except Exception as e:
             logging.error(f"Presence check failed: {e}")
+
         time.sleep(CHECK_INTERVAL)
 
 # === Flask App ===
@@ -101,7 +159,7 @@ app = Flask(__name__)
 
 @app.route("/health")
 def health_check():
-    return jsonify({"status": "ok", "service": "Roblox Monitor"}), 200
+    return jsonify({"status": "ok", "service": "RbxPresenceMonitor"}), 200
 
 def start_flask():
     app.run(host="0.0.0.0", port=5000)
