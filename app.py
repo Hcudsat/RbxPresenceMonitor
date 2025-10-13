@@ -12,6 +12,10 @@ import requests
 import psutil
 from datetime import datetime
 from flask import Flask, jsonify, request
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
 
 CHECK_INTERVAL = 5
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] [%(levelname)s] %(message)s", datefmt="%H:%M:%S")
