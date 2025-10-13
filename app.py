@@ -1,6 +1,8 @@
 """
-RbxPresenceMonitor — Multi-user version with webhook conflict check
+RbxPresenceMonitor — Commercial Stable Version
 Author: Hcudsat
+Description:
+  Multi-user Roblox presence monitor with duplicate and webhook safety checks.
 """
 
 import os
@@ -14,6 +16,7 @@ from datetime import datetime
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+# === Flask setup ===
 app = Flask(__name__)
 CORS(app)
 
@@ -24,7 +27,7 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 
-# --- Prevent duplicate local process ---
+# === Prevent duplicate process ===
 def check_already_running(script_name: str):
     current_pid = os.getpid()
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
@@ -41,7 +44,7 @@ def check_already_running(script_name: str):
 
 check_already_running("app.py")
 
-# --- Discord embed sender ---
+# === Discord Embed Notification ===
 def send_discord_embed(webhook_url, title, description, color, game_name=None):
     embed = {
         "author": {
@@ -61,7 +64,7 @@ def send_discord_embed(webhook_url, title, description, color, game_name=None):
     except Exception as e:
         logging.error(f"Discord send error: {e}")
 
-# --- Roblox API functions ---
+# === Roblox API ===
 def get_user_presence(user_id: int):
     url = "https://presence.roblox.com/v1/presence/users"
     payload = {"userIds": [user_id]}
@@ -85,11 +88,12 @@ def get_game_name(place_id: str):
     except Exception:
         return None
 
-# --- Active monitors ---
+# === Thread & Monitor Tracking ===
 active_threads = {}
 stop_flags = {}
+webhook_map = {}  # webhook_url → user_id mapping
 
-# --- Presence monitor loop ---
+# === Presence Monitoring Loop ===
 def monitor_presence(user_id: str, webhook_url: str):
     last_state = None
     online_since = None
@@ -144,7 +148,7 @@ def monitor_presence(user_id: str, webhook_url: str):
 
     logging.info(f"Stopped monitoring Roblox user {user_id}")
 
-# --- API endpoints ---
+# === API Endpoints ===
 @app.route("/start_monitoring", methods=["POST"])
 def start_monitoring():
     data = request.get_json()
@@ -154,29 +158,48 @@ def start_monitoring():
     if not user_id or not webhook_url:
         return jsonify({"error": "Missing user_id or webhook_url"}), 400
 
-    # Check if same webhook already used for another user
-    for active_id, info in active_threads.items():
-        if info.get("webhook_url") == webhook_url and active_id != user_id:
-            return jsonify({
-                "error": f"Stop monitoring user {active_id} before starting a new one."
-            }), 400
+    # Same webhook used for a different ID?
+    for wh_url, uid in webhook_map.items():
+        if wh_url == webhook_url and uid != user_id:
+            return (
+                jsonify(
+                    {
+                        "error": f"Stop monitoring user {uid} before starting a new one with this webhook."
+                    }
+                ),
+                400,
+            )
 
-    # If already running for this user
-    if user_id in active_threads:
+    # If same user already running
+    if (
+        user_id in active_threads
+        and active_threads[user_id].is_alive()
+        and not stop_flags.get(user_id, False)
+    ):
         return jsonify({"status": "already_running", "user_id": user_id}), 200
 
-    # Start new monitoring thread
+    # Cleanup dead threads
+    for uid, thread in list(active_threads.items()):
+        if not thread.is_alive():
+            del active_threads[uid]
+            stop_flags[uid] = True
+            if webhook_map.get(uid) == webhook_url:
+                del webhook_map[uid]
+
+    # Start new monitor
     thread = threading.Thread(target=monitor_presence, args=(user_id, webhook_url), daemon=True)
-    active_threads[user_id] = {"thread": thread, "webhook_url": webhook_url}
     thread.start()
+    active_threads[user_id] = thread
+    webhook_map[webhook_url] = user_id
+    stop_flags[user_id] = False
 
     return jsonify({"status": "started", "user_id": user_id}), 200
+
 
 @app.route("/stop_monitoring", methods=["POST"])
 def stop_monitoring():
     data = request.get_json()
     user_id = data.get("user_id")
-
     if not user_id:
         return jsonify({"error": "Missing user_id"}), 400
     if user_id not in active_threads:
@@ -184,12 +207,23 @@ def stop_monitoring():
 
     stop_flags[user_id] = True
     del active_threads[user_id]
+    for wh_url, uid in list(webhook_map.items()):
+        if uid == user_id:
+            del webhook_map[wh_url]
     return jsonify({"status": "stopped", "user_id": user_id}), 200
+
 
 @app.route("/health")
 def health_check():
-    return jsonify({"status": "ok", "active_users": list(active_threads.keys())}), 200
+    return jsonify(
+        {
+            "status": "ok",
+            "active_users": list(active_threads.keys()),
+            "thread_count": len(active_threads),
+        }
+    ), 200
+
 
 if __name__ == "__main__":
-    logging.info("Launching monitor server with webhook protection (port 5000)...")
+    logging.info("Launching RbxPresenceMonitor (Commercial Safe Version)...")
     app.run(host="0.0.0.0", port=5000)
