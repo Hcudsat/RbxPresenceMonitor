@@ -1,5 +1,5 @@
 """
-RbxPresenceMonitor — Multi-user API version (with stop support)
+RbxPresenceMonitor — Multi-user API version (stable game name)
 Author: Hcudsat
 """
 
@@ -74,8 +74,12 @@ def get_game_name(place_id: str):
         r = requests.get(f"https://games.roblox.com/v1/games/multiget-place-details?placeIds={place_id}", timeout=10)
         r.raise_for_status()
         data = r.json()
-        return data[0]["name"] if data else None
-    except Exception:
+        if not data:
+            logging.warning(f"No game details found for placeId {place_id}")
+            return None
+        return data[0].get("name", None)
+    except Exception as e:
+        logging.error(f"get_game_name error for {place_id}: {e}")
         return None
 
 # --- Active monitors ---
@@ -93,7 +97,15 @@ def monitor_presence(user_id: str, webhook_url: str):
     while not stop_flags.get(user_id, False):
         try:
             state, game_id, place_id = get_user_presence(int(user_id))
-            game_name = get_game_name(place_id) if state == 2 else None
+
+            # Improved: wait briefly if in-game but placeId not ready
+            game_name = None
+            if state == 2:
+                if not place_id:
+                    time.sleep(3)
+                    state, game_id, place_id = get_user_presence(int(user_id))
+                game_name = get_game_name(place_id)
+
             if state != last_state or game_id != last_game_id:
                 now = datetime.now().strftime("%H:%M:%S")
                 if state == 0:
@@ -107,7 +119,7 @@ def monitor_presence(user_id: str, webhook_url: str):
                     send_discord_embed(webhook_url, "User Online", f"User {user_id} is online ({now}).", 0x2ECC71)
                     online_since = time.time()
                 elif state == 2:
-                    send_discord_embed(webhook_url, "User In Game", f"User {user_id} started playing {game_name or 'an unknown game'}.", 0x3498DB, game_name)
+                    send_discord_embed(webhook_url, "User In Game", f"User {user_id} started playing {game_name or 'a private or unknown game'}.", 0x3498DB, game_name)
                     online_since = time.time()
                 last_state, last_game_id = state, game_id
         except Exception as e:
