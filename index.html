@@ -1,110 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RbxPresence Monitor – Official Site</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --accent: #e43b3b;
+      --bg: #0e0e0e;
+      --text: #f5f5f5;
+      --sub: #b3b3b3;
+    }
     body {
-      font-family: "Segoe UI", Roboto, Arial, sans-serif;
-      background: #f5f7fa;
+      font-family: "Inter", sans-serif;
+      background: var(--bg);
+      color: var(--text);
       margin: 0;
       padding: 0;
-      text-align: center;
-      color: #333;
+      overflow-x: hidden;
     }
     header {
-      background: #111;
-      color: white;
-      padding: 40px 20px;
+      background: linear-gradient(135deg, #111, #1c1c1c);
+      padding: 80px 20px;
+      text-align: center;
     }
     h1 {
+      font-size: 3rem;
+      font-weight: 700;
       margin: 0;
-      font-size: 2.5em;
+      color: white;
     }
     p.subtitle {
-      font-size: 1.1em;
-      color: #ccc;
-      margin-top: 8px;
+      color: var(--sub);
+      font-size: 1.1rem;
+      margin-top: 10px;
     }
     main {
-      padding: 60px 20px;
-      max-width: 800px;
-      margin: 0 auto;
+      padding: 80px 20px;
+      max-width: 1000px;
+      margin: auto;
+      text-align: center;
     }
     section {
-      margin-bottom: 50px;
+      margin-bottom: 80px;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.6s ease;
+    }
+    section.visible {
+      opacity: 1;
+      transform: translateY(0);
     }
     h2 {
-      color: #111;
-      margin-bottom: 10px;
-      border-bottom: 2px solid #eee;
-      display: inline-block;
-      padding-bottom: 4px;
+      color: var(--accent);
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      color: var(--sub);
+      font-size: 1.1rem;
+      line-height: 1.8;
     }
     a.button {
       display: inline-block;
       padding: 12px 24px;
       margin: 10px;
       border-radius: 8px;
-      background-color: #0366d6;
+      background-color: var(--accent);
       color: white;
       text-decoration: none;
-      transition: background-color 0.2s;
+      font-weight: 600;
+      transition: 0.25s;
     }
     a.button:hover {
-      background-color: #024b9a;
+      background-color: #c53131;
+      transform: translateY(-2px);
     }
     footer {
       background: #111;
-      color: #aaa;
-      padding: 20px;
+      padding: 25px;
+      text-align: center;
+      color: var(--sub);
       font-size: 0.9em;
     }
     footer a {
-      color: #58a6ff;
+      color: var(--accent);
       text-decoration: none;
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 2.2rem; }
+      main { padding: 50px 15px; }
     }
   </style>
 </head>
 <body>
   <header>
     <h1>RbxPresence Monitor</h1>
-    <p class="subtitle">Monitor Roblox user activity from your browser</p>
+    <p class="subtitle">Monitor Roblox activity. Stay connected.</p>
   </header>
 
   <main>
     <section>
       <h2>About</h2>
       <p>
-        RbxPresence Monitor is a Chrome Extension that allows you to monitor any Roblox user's online or in-game status and receive instant Discord notifications.
-        The monitoring runs on a secure cloud backend, ensuring real-time updates and high reliability.
+        RbxPresence Monitor is a browser extension that connects Roblox with Discord.
+        It tracks user activity (online, offline, in-game) in real-time and sends updates through your custom webhook.
       </p>
     </section>
 
     <section>
       <h2>Features</h2>
-      <ul style="list-style:none; padding:0;">
-        <li>• Real-time Roblox presence tracking</li>
-        <li>• Discord webhook integration</li>
-        <li>• Cloud-hosted monitoring engine</li>
-        <li>• Lightweight browser integration</li>
+      <ul>
+        <li>Real-time Roblox status tracking</li>
+        <li>Secure Discord webhook integration</li>
+        <li>Cloud-based backend for high uptime</li>
+        <li>Fast, lightweight Chrome extension</li>
       </ul>
     </section>
 
     <section>
-      <h2>Links</h2>
-      <p>
-        <a href="https://github.com/Hcudsat/RbxPresenceMonitor" class="button" target="_blank">GitHub Repository</a>
-        <a href="privacy.html" class="button">Privacy Policy</a>
-        <a href="terms.html" class="button">Terms of Use</a>
-      </p>
+      <h2>Resources</h2>
+      <a href="https://github.com/Hcudsat/RbxPresenceMonitor" class="button" target="_blank">GitHub Repository</a>
+      <a href="privacy.html" class="button">Privacy Policy</a>
+      <a href="terms.html" class="button">Terms of Use</a>
     </section>
   </main>
 
   <footer>
-    © 2025 Hcudsat • 
-    <a href="https://github.com/Hcudsat/RbxPresenceMonitor" target="_blank">GitHub</a>
+    © 2025 Hcudsat • <a href="https://github.com/Hcudsat/RbxPresenceMonitor" target="_blank">GitHub</a>
   </footer>
+
+  <script>
+    const sections = document.querySelectorAll("section");
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add("visible");
+      });
+    }, { threshold: 0.2 });
+    sections.forEach(sec => observer.observe(sec));
+  </script>
 </body>
 </html>
