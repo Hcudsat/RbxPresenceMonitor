@@ -1,5 +1,5 @@
 """
-RbxPresenceMonitor — Batch Monitoring Version
+RbxPresenceMonitor — Batch Monitoring (Commercial Edition)
 Author: Hcudsat
 """
 
@@ -120,9 +120,8 @@ def monitor_all_users():
                 if state == 2:
                     if not place_id:
                         time.sleep(2)
-                        # try re-fetching the user's presence for name
-                        new_state, _, new_place = get_batch_presence([user_id])[0].values()
-                        place_id = new_place
+                        refreshed = get_batch_presence([user_id])[0]
+                        place_id = refreshed.get("placeId")
                     game_name = get_game_name(place_id)
 
                 if state == 0:
@@ -147,6 +146,11 @@ def start_monitoring():
 
     if not user_id or not webhook_url:
         return jsonify({"error": "Missing user_id or webhook_url"}), 400
+
+    if webhook_url in monitored_users.values():
+        return jsonify({
+            "error": "This webhook is already monitoring another user. Please stop monitoring first before starting a new one."
+        }), 400
 
     monitored_users[user_id] = webhook_url
     logging.info(f"Added user {user_id} for monitoring.")
