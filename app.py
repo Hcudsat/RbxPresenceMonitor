@@ -19,7 +19,6 @@ CORS(app)
 
 CHECK_INTERVAL = 5
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] [%(levelname)s] %(message)s", datefmt="%H:%M:%S")
-app = Flask(__name__)
 
 # --- Process duplicate prevention ---
 def check_already_running(script_name: str):
