@@ -7,10 +7,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --accent: #e43b3b;
-      --bg: #0e0e0e;
+      --bg: radial-gradient(circle at top left, rgba(25,25,25,1) 0%, rgba(10,10,10,1) 100%);
+      --glass: rgba(255, 255, 255, 0.05);
       --text: #f5f5f5;
       --sub: #b3b3b3;
+      --accent: rgba(255,255,255,0.2);
+    }
+    * {
+      box-sizing: border-box;
     }
     body {
       font-family: "Inter", sans-serif;
@@ -19,17 +23,23 @@
       margin: 0;
       padding: 0;
       overflow-x: hidden;
+      backdrop-filter: blur(12px);
     }
     header {
-      background: linear-gradient(135deg, #111, #1c1c1c);
-      padding: 80px 20px;
+      backdrop-filter: blur(15px);
+      background: var(--glass);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding: 60px 20px;
       text-align: center;
+      border-radius: 0 0 40px 40px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
     }
     h1 {
-      font-size: 3rem;
+      font-size: 2.8rem;
       font-weight: 700;
       margin: 0;
       color: white;
+      letter-spacing: -1px;
     }
     p.subtitle {
       color: var(--sub);
@@ -37,93 +47,105 @@
       margin-top: 10px;
     }
     main {
-      padding: 80px 20px;
-      max-width: 1000px;
+      padding: 60px 20px;
+      max-width: 900px;
       margin: auto;
-      text-align: center;
     }
     section {
       margin-bottom: 80px;
+      background: var(--glass);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: all 0.4s ease;
       opacity: 0;
       transform: translateY(30px);
-      transition: all 0.6s ease;
     }
     section.visible {
       opacity: 1;
       transform: translateY(0);
     }
     h2 {
-      color: var(--accent);
-      font-size: 1.8rem;
-      margin-bottom: 20px;
+      font-size: 1.6rem;
+      margin-bottom: 15px;
+      color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: inline-block;
+      padding-bottom: 5px;
     }
     ul {
       list-style: none;
       padding: 0;
       color: var(--sub);
-      font-size: 1.1rem;
+      font-size: 1rem;
       line-height: 1.8;
     }
     a.button {
       display: inline-block;
-      padding: 12px 24px;
+      padding: 12px 28px;
       margin: 10px;
-      border-radius: 8px;
-      background-color: var(--accent);
+      border-radius: 12px;
+      background-color: rgba(255,255,255,0.08);
       color: white;
       text-decoration: none;
       font-weight: 600;
       transition: 0.25s;
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
     }
     a.button:hover {
-      background-color: #c53131;
+      background-color: rgba(255,255,255,0.15);
       transform: translateY(-2px);
     }
     footer {
-      background: #111;
+      background: var(--glass);
+      border-top: 1px solid rgba(255,255,255,0.1);
       padding: 25px;
       text-align: center;
       color: var(--sub);
       font-size: 0.9em;
+      border-radius: 30px 30px 0 0;
+      backdrop-filter: blur(15px);
     }
     footer a {
-      color: var(--accent);
+      color: #ddd;
       text-decoration: none;
     }
     @media (max-width: 600px) {
-      h1 { font-size: 2.2rem; }
-      main { padding: 50px 15px; }
+      h1 { font-size: 2.1rem; }
+      section { padding: 25px; }
     }
   </style>
 </head>
 <body>
   <header>
     <h1>RbxPresence Monitor</h1>
-    <p class="subtitle">Monitor Roblox activity. Stay connected.</p>
+    <p class="subtitle">Cloud-connected Roblox activity tracker for Discord</p>
   </header>
 
   <main>
     <section>
       <h2>About</h2>
       <p>
-        RbxPresence Monitor is a browser extension that connects Roblox with Discord.
-        It tracks user activity (online, offline, in-game) in real-time and sends updates through your custom webhook.
+        RbxPresence Monitor allows you to monitor any Roblox user’s online status and send updates directly to a Discord channel.
+        Built with a cloud backend for reliability and privacy.
       </p>
     </section>
 
     <section>
       <h2>Features</h2>
       <ul>
-        <li>Real-time Roblox status tracking</li>
-        <li>Secure Discord webhook integration</li>
-        <li>Cloud-based backend for high uptime</li>
-        <li>Fast, lightweight Chrome extension</li>
+        <li>• Real-time Roblox activity tracking</li>
+        <li>• Secure Discord webhook integration</li>
+        <li>• Cloud-hosted background monitoring</li>
+        <li>• Minimalist UI and transparent design</li>
       </ul>
     </section>
 
     <section>
-      <h2>Resources</h2>
-      <a href="https://github.com/Hcudsat/RbxPresenceMonitor" class="button" target="_blank">GitHub Repository</a>
+      <h2>Links</h2>
+      <a href="https://github.com/Hcudsat/RbxPresenceMonitor" class="button" target="_blank">GitHub</a>
       <a href="privacy.html" class="button">Privacy Policy</a>
       <a href="terms.html" class="button">Terms of Use</a>
     </section>
