@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "RbxPresenceMonitor (In-Page, Authenticated)",
+  "version": "1.1.0",
+  "description": "Monitor Roblox user presence using the user's session (local only).",
+  "icons": {
+    "128": "icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.roblox.com/*"],
+      "js": ["content.js"],
+      "css": ["style.css"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "permissions": [
+    "storage",
+    "notifications",
+    "cookies",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://www.roblox.com/*",
+    "https://*.roblox.com/*",
+    "https://presence.roblox.com/*"
+  ]
+}

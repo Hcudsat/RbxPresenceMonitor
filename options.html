@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>RbxPresenceMonitor Options</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 12px; font-size: 13px; }
+      textarea { width: 100%; height: 80px; }
+      label { display:block; margin-top:8px; }
+      button { margin-top:8px; padding:6px 10px; }
+    </style>
+  </head>
+  <body>
+    <h3>RbxPresenceMonitor — Token & Cookie Settings</h3>
+    <p style="color:darkred">Security note: your .ROBLOSECURITY is sensitive. It will be stored locally in the browser extension storage only. Do not share it.</p>
+
+    <label>Manual .ROBLOSECURITY (paste here to use manually)</label>
+    <textarea id="manualToken" placeholder=".ROBLOSECURITY"></textarea>
+    <div>
+      <button id="saveToken">Save token locally</button>
+      <button id="clearToken">Clear token</button>
+    </div>
+
+    <label><input type="checkbox" id="useCookies"> Use browser cookie (.ROBLOSECURITY) automatically (requires cookie permission)</label>
+
+    <p id="status"></p>
+
+    <script>
+      const status = document.getElementById('status');
+      document.getElementById('saveToken').addEventListener('click', async () => {
+        const t = document.getElementById('manualToken').value.trim();
+        if (!t) { status.textContent = "Empty token"; return; }
+        await chrome.storage.local.set({ manual_token: t });
+        status.textContent = "Token saved locally.";
+      });
+      document.getElementById('clearToken').addEventListener('click', async () => {
+        await chrome.storage.local.remove('manual_token');
+        document.getElementById('manualToken').value = '';
+        status.textContent = "Token cleared.";
+      });
+      document.getElementById('useCookies').addEventListener('change', async (e) => {
+        await chrome.storage.local.set({ use_cookies: e.target.checked });
+        status.textContent = e.target.checked ? "Will attempt to use browser cookie." : "Cookie use disabled.";
+      });
+
+      (async () => {
+        const s = await chrome.storage.local.get(['manual_token', 'use_cookies']);
+        if (s.manual_token) document.getElementById('manualToken').value = s.manual_token;
+        document.getElementById('useCookies').checked = !!s.use_cookies;
+      })();
+    </script>
+  </body>
+</html>
