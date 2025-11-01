@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RbxPresenceMonitor (In-Page, Authenticated)",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Monitor Roblox user presence using the user's session (local only).",
   "icons": {
     "128": "icon128.png"
