@@ -1,7 +1,3 @@
-// background service worker (MV3)
-// - 저장 정책: chrome.storage.local에 수동으로 저장된 토큰만 사용합니다.
-// - 서버 전송을 피합니다. Webhook 전송 시 세션 토큰은 포함하지 않습니다.
-
 const API_KEY = "rbx-secure-25";
 
 async function getManualToken() {
